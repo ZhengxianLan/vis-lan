@@ -1,6 +1,6 @@
 # vis.js files
 test/
-dist
+dist/
 
 # npm files
 node_modules

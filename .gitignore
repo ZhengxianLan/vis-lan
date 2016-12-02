@@ -1,6 +1,7 @@
 # vis.js files
-test/
 dist/
+test/
+.DS_Store
 
 # npm files
 node_modules

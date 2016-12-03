@@ -1,12 +1,12 @@
 {
-  "name": "vis",
-  "version": "4.17.0-SNAPSHOT",
+  "name": "vis-lan",
+  "version": "4.17.1",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "license": "(Apache-2.0 OR MIT)",
   "repository": {
     "type": "git",
-    "url": "git://github.com/almende/vis.git"
+    "url": "https://github.com/ZhengxianLan/vis"
   },
   "keywords": [
     "vis",

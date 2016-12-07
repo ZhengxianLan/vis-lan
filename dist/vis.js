@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.17.0-SNAPSHOT
- * @date    2016-12-02
+ * @version 4.17.2
+ * @date    2016-12-07
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -35308,21 +35308,33 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     /**
-     * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
-     *
-     * @param nearNode
-     * @param ctx
-     * @param viaNode
-     * @param nearNode
-     * @param ctx
-     * @param viaNode
-     * @param nearNode
-     * @param ctx
-     * @param viaNode
+     * If arrow needs to keep a distance to node border
+     * return boolean
      */
 
 
     _createClass(BezierEdgeBase, [{
+      key: 'hasDistanceToBorder',
+      value: function hasDistanceToBorder() {
+        var arrowTo = this.options.arrows.to;
+        return arrowTo.enabled && arrowTo.toBorder;
+      }
+
+      /**
+       * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
+       *
+       * @param nearNode
+       * @param ctx
+       * @param viaNode
+       * @param nearNode
+       * @param ctx
+       * @param viaNode
+       * @param nearNode
+       * @param ctx
+       * @param viaNode
+       */
+
+    }, {
       key: '_findBorderPositionBezier',
       value: function _findBorderPositionBezier(nearNode, ctx) {
         var viaNode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._getViaCoordinates();
@@ -35346,7 +35358,10 @@ return /******/ (function(modules) { // webpackBootstrap
           pos = this.getPoint(middle, viaNode);
           angle = Math.atan2(node.y - pos.y, node.x - pos.x);
           // 这里只能改变箭头到node的距离，和 修改CircleImageBase.distanceToBorder 一样的效果
-          distanceToBorder = node.distanceToBorder(ctx, angle) + 6;
+          distanceToBorder = node.distanceToBorder(ctx, angle);
+          if (this.hasDistanceToBorder()) {
+            distanceToBorder += this.options.arrows.to.toBorder;
+          }
           distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
           difference = distanceToBorder - distanceToPoint;
           if (Math.abs(difference) < threshold) {
@@ -36170,7 +36185,11 @@ return /******/ (function(modules) { // webpackBootstrap
         } else {
           // ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.toPoint.x, this.toPoint.y);
           // 画 edge
-          ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.offsetPos.x, this.offsetPos.y);
+          if (this.hasDistanceToBorder()) {
+            ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.offsetPos.x, this.offsetPos.y);
+          } else {
+            ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.toPoint.x, this.toPoint.y);
+          }
         }
         // draw shadow if enabled
         this.enableShadow(ctx);
@@ -45787,7 +45806,7 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     edges: {
       arrows: {
-        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, type: { string: ['arrow', 'circle'] }, __type__: { object: object, boolean: boolean } },
+        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, type: { string: ['arrow', 'circle'] }, toBorder: { number: number }, __type__: { object: object, boolean: boolean } },
         middle: { enabled: { boolean: boolean }, scaleFactor: { number: number }, type: { string: ['arrow', 'circle'] }, __type__: { object: object, boolean: boolean } },
         from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, type: { string: ['arrow', 'circle'] }, __type__: { object: object, boolean: boolean } },
         __type__: { string: ['from', 'to', 'middle'], object: object }
@@ -46144,7 +46163,7 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     edges: {
       arrows: {
-        to: { enabled: false, scaleFactor: [1, 0, 3, 0.05], type: 'arrow' },
+        to: { enabled: false, scaleFactor: [1, 0, 3, 0.05], type: 'arrow', toBorder: 6 },
         middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05], type: 'arrow' },
         from: { enabled: false, scaleFactor: [1, 0, 3, 0.05], type: 'arrow' }
       },

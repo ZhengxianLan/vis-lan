@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.17.2
+ * @version 4.17.21
  * @date    2016-12-07
  *
  * @license
@@ -35301,40 +35301,25 @@ return /******/ (function(modules) { // webpackBootstrap
     function BezierEdgeBase(options, body, labelModule) {
       _classCallCheck(this, BezierEdgeBase);
 
-      var _this = _possibleConstructorReturn(this, (BezierEdgeBase.__proto__ || Object.getPrototypeOf(BezierEdgeBase)).call(this, options, body, labelModule));
-
-      _this.offsetPos = {};
-      return _this;
+      return _possibleConstructorReturn(this, (BezierEdgeBase.__proto__ || Object.getPrototypeOf(BezierEdgeBase)).call(this, options, body, labelModule));
     }
 
     /**
-     * If arrow needs to keep a distance to node border
-     * return boolean
+     * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
+     *
+     * @param nearNode
+     * @param ctx
+     * @param viaNode
+     * @param nearNode
+     * @param ctx
+     * @param viaNode
+     * @param nearNode
+     * @param ctx
+     * @param viaNode
      */
 
 
     _createClass(BezierEdgeBase, [{
-      key: 'hasDistanceToBorder',
-      value: function hasDistanceToBorder() {
-        var arrowTo = this.options.arrows.to;
-        return arrowTo.enabled && arrowTo.toBorder;
-      }
-
-      /**
-       * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
-       *
-       * @param nearNode
-       * @param ctx
-       * @param viaNode
-       * @param nearNode
-       * @param ctx
-       * @param viaNode
-       * @param nearNode
-       * @param ctx
-       * @param viaNode
-       */
-
-    }, {
       key: '_findBorderPositionBezier',
       value: function _findBorderPositionBezier(nearNode, ctx) {
         var viaNode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._getViaCoordinates();
@@ -35466,9 +35451,22 @@ return /******/ (function(modules) { // webpackBootstrap
       this.hoverWidth = 1.5;
       this.fromPoint = this.from;
       this.toPoint = this.to;
+      this.offsetPos = {};
     }
 
+    /**
+     * If arrow needs to keep a distance to node border
+     * return boolean
+     */
+
+
     _createClass(EdgeBase, [{
+      key: 'hasDistanceToBorder',
+      value: function hasDistanceToBorder() {
+        var arrowTo = this.options.arrows.to;
+        return arrowTo.enabled && arrowTo.toBorder;
+      }
+    }, {
       key: 'connect',
       value: function connect() {
         this.from = this.body.nodes[this.options.from];
@@ -35990,8 +35988,11 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.circleEndpoint(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
         } else {
           // draw arrow at the end of the line
-          // ctx.arrowEndpoint(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
-          ctx.arrowEndpoint(this.offsetPos.x, this.offsetPos.y, arrowData.angle, arrowData.length);
+          if (this.hasDistanceToBorder()) {
+            ctx.arrowEndpoint(this.offsetPos.x, this.offsetPos.y, arrowData.angle, arrowData.length);
+          } else {
+            ctx.arrowEndpoint(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
+          }
         }
 
         // draw shadow if enabled
@@ -36567,7 +36568,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // draw a straight line
         ctx.beginPath();
         ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
-        ctx.lineTo(this.toPoint.x, this.toPoint.y);
+        if (this.hasDistanceToBorder()) {
+          ctx.lineTo(this.offsetPos.x, this.offsetPos.y);
+        } else {
+          ctx.lineTo(this.toPoint.x, this.toPoint.y);
+        }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
@@ -36610,12 +36615,15 @@ return /******/ (function(modules) { // webpackBootstrap
         var dy = node1.y - node2.y;
         var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
         var toBorderDist = nearNode.distanceToBorder(ctx, angle);
+        if (this.hasDistanceToBorder()) {
+          toBorderDist += this.options.arrows.to.toBorder;
+        }
         var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
 
         var borderPos = {};
         borderPos.x = (1 - toBorderPoint) * node2.x + toBorderPoint * node1.x;
         borderPos.y = (1 - toBorderPoint) * node2.y + toBorderPoint * node1.y;
-
+        this.offsetPos = borderPos;
         return borderPos;
       }
     }, {
